@@ -1,15 +1,12 @@
-# Route53 hosted zone for gakushu.now (独自ドメイン)
-resource "aws_route53_zone" "main" {
+# Route53 hosted zone for gakushu.now
+# ドメイン購入時に自動作成された hosted zone を参照（Terraform で新規作成しない）
+data "aws_route53_zone" "main" {
   name = var.domain
-
-  tags = {
-    Project = var.project
-  }
 }
 
 # gakushu.now -> CloudFront
 resource "aws_route53_record" "root" {
-  zone_id = aws_route53_zone.main.zone_id
+  zone_id = data.aws_route53_zone.main.zone_id
   name    = var.domain
   type    = "A"
 
@@ -35,7 +32,7 @@ locals {
 resource "aws_route53_record" "acm_validation" {
   for_each = local.acm_validation_options
 
-  zone_id = aws_route53_zone.main.zone_id
+  zone_id = data.aws_route53_zone.main.zone_id
   name    = each.value.name
   type    = each.value.type
   records = [each.value.record]
