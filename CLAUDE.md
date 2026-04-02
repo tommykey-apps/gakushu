@@ -52,6 +52,15 @@ cd infra && terraform destroy
 
 gakushu.now (独自ドメイン。他プロジェクトの *.tommykeyapp.com とは別)
 
+## デプロイルール
+
+デプロイは **必ず GitHub Actions CD パイプライン経由** で行う。
+- `terraform apply` はローカルで実行しない (CD のみ)
+- `aws lambda update-function-code` はローカルで実行しない
+- `aws s3 sync` はローカルで実行しない
+- ローカルで許可されるのは `terraform plan`, `terraform validate`, state 操作のみ
+- `/deploy status` でCD実行状況を確認、`/deploy trigger` で手動発火
+
 ## AWS リージョン
 
 ap-northeast-1 (東京)
