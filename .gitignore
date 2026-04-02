@@ -1,0 +1,31 @@
+# Node
+node_modules/
+dist/
+.output/
+.nitro/
+.nuxt/
+
+# Terraform
+infra/.terraform/
+infra/*.tfstate*
+infra/.terraform.lock.hcl
+infra/lambda_placeholder.zip
+terraform.tfvars
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+
+# Flox
+.flox/log/
+.flox/run/
+.flox/cache/
+
+# Environment
+.env
+
+# Playwright
+.playwright-mcp/

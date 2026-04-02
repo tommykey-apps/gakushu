@@ -1,0 +1,50 @@
+name: Deploy API Docs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/**"
+      - "api/schemas/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: DeterminateSystems/nix-installer-action@main
+
+      - uses: flox/install-flox-action@main
+
+      - name: Generate OpenAPI spec
+        run: |
+          flox activate -- bash -c '
+            cd api
+            pnpm install --frozen-lockfile
+            pnpm run generate-openapi
+          '
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

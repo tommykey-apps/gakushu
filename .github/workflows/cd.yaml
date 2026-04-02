@@ -1,0 +1,110 @@
+name: CD
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "api/**"
+      - "web/**"
+      - "infra/**"
+  workflow_dispatch:
+
+env:
+  AWS_REGION: ap-northeast-1
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-infra:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - uses: DeterminateSystems/nix-installer-action@main
+
+      - uses: flox/install-flox-action@main
+
+      - name: Terraform Apply
+        run: |
+          flox activate -- bash -c '
+            cd infra
+            terraform init
+            terraform apply -input=false -auto-approve
+          '
+
+  deploy-api:
+    needs: deploy-infra
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - uses: DeterminateSystems/nix-installer-action@main
+
+      - uses: flox/install-flox-action@main
+
+      - name: Build API
+        run: |
+          flox activate -- bash -c '
+            cd api
+            pnpm install --frozen-lockfile
+            pnpm run build
+          '
+
+      - name: Package and deploy Lambda
+        run: |
+          cd api/.output/server
+          zip -r9 ../../lambda.zip . -q
+          cd ../..
+          aws lambda update-function-code \
+            --function-name gakushu-api \
+            --zip-file fileb://lambda.zip
+
+  deploy-web:
+    needs: deploy-infra
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - uses: DeterminateSystems/nix-installer-action@main
+
+      - uses: flox/install-flox-action@main
+
+      - name: Build Nuxt
+        env:
+          NUXT_PUBLIC_COGNITO_USER_POOL_ID: ${{ secrets.COGNITO_USER_POOL_ID }}
+          NUXT_PUBLIC_COGNITO_CLIENT_ID: ${{ secrets.COGNITO_CLIENT_ID }}
+          NUXT_PUBLIC_API_URL: ${{ secrets.API_URL }}
+        run: |
+          flox activate -- bash -c '
+            cd web
+            pnpm install --frozen-lockfile
+            pnpm run generate
+          '
+
+      - name: Deploy to S3
+        run: aws s3 sync web/.output/public/ s3://${{ secrets.FRONTEND_BUCKET }} --delete
+
+      - name: Invalidate CloudFront cache
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
+            --paths "/*"
