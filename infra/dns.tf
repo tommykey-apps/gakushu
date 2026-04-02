@@ -28,7 +28,7 @@ resource "aws_route53_record" "acm_validation" {
       name   = dvo.resource_record_name
       record = dvo.resource_record_value
       type   = dvo.resource_record_type
-    }...
+    }
   }
 
   zone_id = aws_route53_zone.main.zone_id
