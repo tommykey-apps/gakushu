@@ -21,13 +21,14 @@ resource "aws_route53_record" "root" {
 }
 
 # ACM DNS validation records
+# gakushu.now と *.gakushu.now は同じ CNAME を共有するので resource_record_name でユニーク化
 resource "aws_route53_record" "acm_validation" {
   for_each = {
-    for dvo in aws_acm_certificate.main.domain_validation_options : dvo.domain_name => {
+    for dvo in aws_acm_certificate.main.domain_validation_options : dvo.resource_record_name => {
       name   = dvo.resource_record_name
       record = dvo.resource_record_value
       type   = dvo.resource_record_type
-    }
+    }...
   }
 
   zone_id = aws_route53_zone.main.zone_id
