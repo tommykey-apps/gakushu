@@ -16,49 +16,61 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
 
-      - uses: flox/install-flox-action@main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+          cache-dependency-path: api/pnpm-lock.yaml
 
       - name: Install, build, and test
         run: |
-          flox activate -- bash -c '
-            cd api
-            pnpm install --frozen-lockfile
-            pnpm run build
-            pnpm test || true
-          '
+          cd api
+          pnpm install --frozen-lockfile
+          pnpm run build
+          pnpm test
 
   test-web:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
 
-      - uses: flox/install-flox-action@main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
 
       - name: Install and build
         run: |
-          flox activate -- bash -c '
-            cd web
-            pnpm install --frozen-lockfile
-            pnpm run build
-          '
+          cd web
+          pnpm install --frozen-lockfile
+          pnpm run build
 
   lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
 
-      - uses: flox/install-flox-action@main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
 
       - name: TypeScript type check
         run: |
-          flox activate -- bash -c '
-            cd web
-            pnpm install --frozen-lockfile
-            pnpm run check
-          '
+          cd web
+          pnpm install --frozen-lockfile
+          pnpm run check

@@ -13,5 +13,5 @@ variable "region" {
 variable "domain" {
   description = "Domain name"
   type        = string
-  default     = "gakushu.ai"
+  default     = "gakushu.now"
 }

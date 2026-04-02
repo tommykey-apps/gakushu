@@ -50,7 +50,7 @@ cd infra && terraform destroy
 
 ## ドメイン
 
-gakushu.ai (独自ドメイン。他プロジェクトの *.tommykeyapp.com とは別)
+gakushu.now (独自ドメイン。他プロジェクトの *.tommykeyapp.com とは別)
 
 ## AWS リージョン
 

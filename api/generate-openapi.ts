@@ -214,7 +214,7 @@ const doc = generator.generateDocument({
   },
   servers: [
     { url: "http://localhost:3001", description: "ローカル開発" },
-    { url: "https://api.gakushu.ai", description: "本番" },
+    { url: "https://api.gakushu.now", description: "本番" },
   ],
 });
 

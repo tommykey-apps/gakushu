@@ -1,4 +1,4 @@
-# Route53 hosted zone for gakushu.ai (独自ドメイン)
+# Route53 hosted zone for gakushu.now (独自ドメイン)
 resource "aws_route53_zone" "main" {
   name = var.domain
 
@@ -7,7 +7,7 @@ resource "aws_route53_zone" "main" {
   }
 }
 
-# gakushu.ai -> CloudFront
+# gakushu.now -> CloudFront
 resource "aws_route53_record" "root" {
   zone_id = aws_route53_zone.main.zone_id
   name    = var.domain

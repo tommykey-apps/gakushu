@@ -27,17 +27,13 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - uses: DeterminateSystems/nix-installer-action@main
-
-      - uses: flox/install-flox-action@main
+      - uses: hashicorp/setup-terraform@v3
 
       - name: Terraform Apply
         run: |
-          flox activate -- bash -c '
-            cd infra
-            terraform init
-            terraform apply -input=false -auto-approve
-          '
+          cd infra
+          terraform init
+          terraform apply -input=false -auto-approve
 
   deploy-api:
     needs: deploy-infra
@@ -51,17 +47,21 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
 
-      - uses: flox/install-flox-action@main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+          cache-dependency-path: api/pnpm-lock.yaml
 
       - name: Build API
         run: |
-          flox activate -- bash -c '
-            cd api
-            pnpm install --frozen-lockfile
-            pnpm run build
-          '
+          cd api
+          pnpm install --frozen-lockfile
+          pnpm run build
 
       - name: Package and deploy Lambda
         run: |
@@ -84,9 +84,15 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
 
-      - uses: flox/install-flox-action@main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
 
       - name: Build Nuxt
         env:
@@ -94,11 +100,9 @@ jobs:
           NUXT_PUBLIC_COGNITO_CLIENT_ID: ${{ secrets.COGNITO_CLIENT_ID }}
           NUXT_PUBLIC_API_URL: ${{ secrets.API_URL }}
         run: |
-          flox activate -- bash -c '
-            cd web
-            pnpm install --frozen-lockfile
-            pnpm run generate
-          '
+          cd web
+          pnpm install --frozen-lockfile
+          pnpm run generate
 
       - name: Deploy to S3
         run: aws s3 sync web/.output/public/ s3://${{ secrets.FRONTEND_BUCKET }} --delete

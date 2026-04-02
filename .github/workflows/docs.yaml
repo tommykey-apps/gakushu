@@ -23,17 +23,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
 
-      - uses: flox/install-flox-action@main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+          cache-dependency-path: api/pnpm-lock.yaml
 
       - name: Generate OpenAPI spec
         run: |
-          flox activate -- bash -c '
-            cd api
-            pnpm install --frozen-lockfile
-            pnpm run generate-openapi
-          '
+          cd api
+          pnpm install --frozen-lockfile
+          pnpm run generate-openapi
 
       - uses: actions/upload-pages-artifact@v3
         with:
