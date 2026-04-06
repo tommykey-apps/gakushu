@@ -5,7 +5,7 @@ export default defineAppConfig({
     },
     header: {
       slots: {
-        root: 'bg-white/80 backdrop-blur-sm border-b border-gray-50',
+        root: 'bg-white/80 backdrop-blur-md border-b border-gray-50 transition-all duration-300',
         container: 'max-w-5xl',
         title: 'text-base font-normal text-gray-400 hover:text-gray-600 transition-colors duration-300',
       },

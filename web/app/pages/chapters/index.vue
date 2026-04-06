@@ -12,7 +12,7 @@
   >
     <UPageList>
       <UPageCard
-        v-for="chapter in chapters"
+        v-for="(chapter, i) in chapters"
         :key="chapter.order"
         :title="`Chapter ${chapter.order}: ${chapter.title}`"
         :description="chapter.description"
@@ -20,9 +20,8 @@
         variant="outline"
         spotlight
         spotlight-color="neutral"
-        :ui="{
-          root: 'transition-all duration-300 ease-out hover:shadow-sm',
-        }"
+        class="fade-in-up card-hover"
+        :style="{ transitionDelay: `${i * 0.08}s` }"
       >
         <template #leading>
           <span class="text-xl">{{ chapter.icon }}</span>
@@ -49,6 +48,7 @@
 const { user } = useAuth()
 const { progress, fetchProgress } = useProgress()
 const { chapters } = useChapters()
+useScrollReveal()
 
 function getProgress(order: number): number {
   return progress.value?.[order] ?? 0

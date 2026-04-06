@@ -28,7 +28,7 @@
     >
       <UPageList>
         <UPageCard
-          v-for="chapter in chapters"
+          v-for="(chapter, i) in chapters"
           :key="chapter.order"
           :title="`Chapter ${chapter.order}: ${chapter.title}`"
           :description="chapter.description"
@@ -36,8 +36,9 @@
           variant="outline"
           spotlight
           spotlight-color="neutral"
+          class="fade-in-up card-hover"
+          :style="{ transitionDelay: `${i * 0.08}s` }"
           :ui="{
-            root: 'transition-all duration-300 ease-out hover:shadow-sm',
             title: 'text-sm font-medium text-gray-800',
             description: 'text-sm text-gray-400 leading-relaxed',
           }"
@@ -53,4 +54,5 @@
 
 <script setup lang="ts">
 const { chapters } = useChapters()
+useScrollReveal()
 </script>
