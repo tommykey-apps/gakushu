@@ -8,14 +8,14 @@ vi.mock("h3", async (importOriginal) => {
   const actual = await importOriginal<typeof import("h3")>();
   return {
     ...actual,
-    readBody: vi.fn(),
+    readValidatedBody: vi.fn(),
     setResponseHeader: vi.fn(),
   };
 });
 
 import handler from "../../../routes/api/tutor/ask.post";
 import { invokeModelStream } from "../../../utils/bedrock";
-import { readBody } from "h3";
+import { readValidatedBody } from "h3";
 
 describe("POST /api/tutor/ask", () => {
   beforeEach(() => {
@@ -28,7 +28,7 @@ describe("POST /api/tutor/ask", () => {
       yield "World";
     }
     vi.mocked(invokeModelStream).mockReturnValue(mockStream());
-    vi.mocked(readBody).mockResolvedValue({
+    vi.mocked(readValidatedBody).mockResolvedValue({
       question: "Attention機構とは？",
       chapterId: "attention",
     });
@@ -41,20 +41,10 @@ describe("POST /api/tutor/ask", () => {
     expect(result).toBeInstanceOf(ReadableStream);
   });
 
-  it("throws 400 when question is missing", async () => {
-    vi.mocked(readBody).mockResolvedValue({});
-
-    const event = {
-      context: { userId: "user-1" },
-    } as any;
-
-    await expect(handler(event)).rejects.toMatchObject({
-      statusCode: 400,
-    });
-  });
-
-  it("throws 400 when question is empty", async () => {
-    vi.mocked(readBody).mockResolvedValue({ question: "" });
+  it("throws 400 when validation fails", async () => {
+    vi.mocked(readValidatedBody).mockRejectedValue(
+      Object.assign(new Error("Validation failed"), { statusCode: 400 }),
+    );
 
     const event = {
       context: { userId: "user-1" },

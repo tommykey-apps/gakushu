@@ -15,14 +15,15 @@ vi.mock("h3", async (importOriginal) => {
   const actual = await importOriginal<typeof import("h3")>();
   return {
     ...actual,
-    readBody: vi.fn(),
+    readValidatedBody: vi.fn(),
+    getValidatedRouterParams: vi.fn(),
   };
 });
 
 import getHandler from "../../../routes/api/quiz/[chapterId].get";
 import postHandler from "../../../routes/api/quiz/[chapterId].post";
 import { invokeModel } from "../../../utils/bedrock";
-import { readBody } from "h3";
+import { readValidatedBody, getValidatedRouterParams } from "h3";
 
 describe("GET /api/quiz/:chapterId", () => {
   beforeEach(() => {
@@ -42,9 +43,10 @@ describe("GET /api/quiz/:chapterId", () => {
       ],
     };
     vi.mocked(invokeModel).mockResolvedValue(JSON.stringify(mockQuiz));
+    vi.mocked(getValidatedRouterParams).mockResolvedValue({ chapterId: "1" });
 
     const event = {
-      context: { userId: "user-1", params: { chapterId: "tokenization" } },
+      context: { userId: "user-1" },
     } as any;
 
     const result = await getHandler(event);
@@ -52,20 +54,25 @@ describe("GET /api/quiz/:chapterId", () => {
     expect(invokeModel).toHaveBeenCalledOnce();
   });
 
-  it("returns raw result when JSON parse fails", async () => {
+  it("returns empty questions when JSON parse fails", async () => {
     vi.mocked(invokeModel).mockResolvedValue("not json");
+    vi.mocked(getValidatedRouterParams).mockResolvedValue({ chapterId: "1" });
 
     const event = {
-      context: { userId: "user-1", params: { chapterId: "tokenization" } },
+      context: { userId: "user-1" },
     } as any;
 
     const result = await getHandler(event);
-    expect(result).toEqual({ questions: [], raw: "not json" });
+    expect(result).toEqual({ questions: [] });
   });
 
-  it("throws 400 when chapterId is missing", async () => {
+  it("throws 400 when chapterId validation fails", async () => {
+    vi.mocked(getValidatedRouterParams).mockRejectedValue(
+      Object.assign(new Error("Validation failed"), { statusCode: 400 }),
+    );
+
     const event = {
-      context: { params: {} },
+      context: {} ,
     } as any;
 
     await expect(getHandler(event)).rejects.toMatchObject({
@@ -86,7 +93,8 @@ describe("POST /api/quiz/:chapterId", () => {
       corrections: [],
     };
     vi.mocked(invokeModel).mockResolvedValue(JSON.stringify(mockEval));
-    vi.mocked(readBody).mockResolvedValue({
+    vi.mocked(getValidatedRouterParams).mockResolvedValue({ chapterId: "1" });
+    vi.mocked(readValidatedBody).mockResolvedValue({
       answers: [{ questionId: "q1", selectedIndex: 0 }],
     });
 
@@ -94,7 +102,7 @@ describe("POST /api/quiz/:chapterId", () => {
     vi.mocked(docClient.send).mockResolvedValue({} as any);
 
     const event = {
-      context: { userId: "user-1", params: { chapterId: "tokenization" } },
+      context: { userId: "user-1" },
     } as any;
 
     const result = await postHandler(event);
@@ -102,9 +110,13 @@ describe("POST /api/quiz/:chapterId", () => {
     expect(docClient.send).toHaveBeenCalledOnce();
   });
 
-  it("throws 400 when chapterId is missing", async () => {
+  it("throws 400 when chapterId validation fails", async () => {
+    vi.mocked(getValidatedRouterParams).mockRejectedValue(
+      Object.assign(new Error("Validation failed"), { statusCode: 400 }),
+    );
+
     const event = {
-      context: { userId: "user-1", params: {} },
+      context: { userId: "user-1" },
     } as any;
 
     await expect(postHandler(event)).rejects.toMatchObject({
@@ -113,10 +125,13 @@ describe("POST /api/quiz/:chapterId", () => {
   });
 
   it("throws 400 when body validation fails", async () => {
-    vi.mocked(readBody).mockResolvedValue({ answers: "invalid" });
+    vi.mocked(getValidatedRouterParams).mockResolvedValue({ chapterId: "1" });
+    vi.mocked(readValidatedBody).mockRejectedValue(
+      Object.assign(new Error("Validation failed"), { statusCode: 400 }),
+    );
 
     const event = {
-      context: { userId: "user-1", params: { chapterId: "tokenization" } },
+      context: { userId: "user-1" },
     } as any;
 
     await expect(postHandler(event)).rejects.toMatchObject({

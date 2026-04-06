@@ -1,21 +1,17 @@
-import { defineEventHandler, readBody, createError, setResponseHeader } from "h3";
+import { defineEventHandler, readValidatedBody, setResponseHeader } from "h3";
 import { invokeModelStream } from "../../../utils/bedrock";
 import { TutorAskRequestSchema } from "../../../schemas/tutor";
+import { wrapUserInput, ANTI_INJECTION_INSTRUCTION } from "../../../utils/sanitize";
 
 export default defineEventHandler(async (event) => {
-  const body = await readBody(event);
-  const parsed = TutorAskRequestSchema.safeParse(body);
-  if (!parsed.success) {
-    throw createError({ statusCode: 400, message: parsed.error.message });
-  }
-
-  const { question, chapterId, context } = parsed.data;
+  const { question, chapterId, context } = await readValidatedBody(event, TutorAskRequestSchema);
 
   const system = `あなたはGPTの仕組みを教える優秀なAIチューターです。
 ユーザーの質問に対して、わかりやすく丁寧に回答してください。
 ${chapterId ? `現在のチャプター: ${chapterId}` : ""}
 ${context ? `コンテキスト: ${context}` : ""}
-日本語で回答してください。`;
+日本語で回答してください。
+${ANTI_INJECTION_INSTRUCTION}`;
 
   // SSE streaming
   setResponseHeader(event, "Content-Type", "text/event-stream");
@@ -27,7 +23,7 @@ ${context ? `コンテキスト: ${context}` : ""}
       const encoder = new TextEncoder();
       try {
         for await (const chunk of invokeModelStream(system, [
-          { role: "user", content: question },
+          { role: "user", content: wrapUserInput(question) },
         ])) {
           const data = `data: ${JSON.stringify({ text: chunk })}\n\n`;
           controller.enqueue(encoder.encode(data));

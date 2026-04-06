@@ -33,6 +33,7 @@
       color="neutral"
       size="lg"
       class="rounded-full shadow-sm"
+      :aria-label="isOpen ? 'AIチューターを閉じる' : 'AIチューターを開く'"
       @click="isOpen = !isOpen"
     />
   </div>

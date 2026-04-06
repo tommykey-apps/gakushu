@@ -29,11 +29,14 @@ jobs:
 
       - uses: hashicorp/setup-terraform@v3
 
+      - name: Terraform Init
+        run: cd infra && terraform init
+
+      - name: Terraform Plan
+        run: cd infra && terraform plan -input=false -out=tfplan
+
       - name: Terraform Apply
-        run: |
-          cd infra
-          terraform init
-          terraform apply -input=false -auto-approve
+        run: cd infra && terraform apply tfplan
 
   deploy-api:
     needs: deploy-infra

@@ -14,7 +14,10 @@ const route = useRoute()
 const { chapterByOrder } = useChapters()
 
 const chapter = chapterByOrder(route.params.id as string)
-const slug = chapter?.slug ?? route.params.id
+if (!chapter) {
+  throw createError({ status: 404, statusText: 'この章は存在しません' })
+}
+const slug = chapter.slug
 
 const { data: page } = await useAsyncData(`chapter-${slug}`, () =>
   queryCollection('content').path(`/chapters/${slug}`).first(),

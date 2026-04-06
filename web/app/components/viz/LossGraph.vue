@@ -1,6 +1,6 @@
 <template>
   <ClientOnly>
-    <div ref="container" class="w-full" />
+    <div ref="container" class="w-full" role="img" aria-label="学習損失の推移グラフ" />
     <template #fallback>
       <div class="border border-gray-200 rounded p-8 text-center text-sm text-gray-400">
         読み込み中...

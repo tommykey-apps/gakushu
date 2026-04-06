@@ -1,11 +1,9 @@
-import { defineEventHandler, createError } from "h3";
+import { defineEventHandler, getValidatedRouterParams, createError } from "h3";
 import { invokeModel } from "../../../utils/bedrock";
+import { ChapterIdParamsSchema } from "../../../schemas/params";
 
 export default defineEventHandler(async (event) => {
-  const chapterId = event.context.params?.chapterId;
-  if (!chapterId) {
-    throw createError({ statusCode: 400, message: "chapterId is required" });
-  }
+  const { chapterId } = await getValidatedRouterParams(event, ChapterIdParamsSchema);
 
   const system = `あなたはGPTの仕組みを教える教育AIです。指定されたチャプターに関するクイズを生成してください。
 レスポンスは必ず以下のJSON形式で返してください:
@@ -21,13 +19,18 @@ export default defineEventHandler(async (event) => {
   ]
 }`;
 
-  const result = await invokeModel(system, [
-    { role: "user", content: `チャプター「${chapterId}」に関するクイズを2問生成してください。` },
-  ]);
+  let result: string;
+  try {
+    result = await invokeModel(system, [
+      { role: "user", content: `チャプター「${chapterId}」に関するクイズを2問生成してください。` },
+    ]);
+  } catch {
+    throw createError({ statusCode: 502, message: "Quiz generation failed" });
+  }
 
   try {
     return JSON.parse(result);
   } catch {
-    return { questions: [], raw: result };
+    return { questions: [] };
   }
 });

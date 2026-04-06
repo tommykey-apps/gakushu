@@ -1,38 +1,34 @@
-import { defineEventHandler, readBody, createError } from "h3";
+import { defineEventHandler, readValidatedBody, getValidatedRouterParams, createError } from "h3";
 import { docClient, TABLE_NAME } from "../../../utils/dynamo";
 import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import { UpdateProgressRequestSchema } from "../../../schemas/progress";
+import { ChapterIdParamsSchema } from "../../../schemas/params";
 
 export default defineEventHandler(async (event) => {
   const userId = event.context.userId as string;
-  const chapterId = event.context.params?.chapterId;
-
-  if (!chapterId) {
-    throw createError({ statusCode: 400, message: "chapterId is required" });
-  }
-
-  const body = await readBody(event);
-  const parsed = UpdateProgressRequestSchema.safeParse(body);
-  if (!parsed.success) {
-    throw createError({ statusCode: 400, message: parsed.error.message });
-  }
+  const { chapterId } = await getValidatedRouterParams(event, ChapterIdParamsSchema);
+  const parsed = await readValidatedBody(event, UpdateProgressRequestSchema);
 
   const now = new Date().toISOString();
   const item = {
     pk: `USER#${userId}`,
     sk: `PROG#${chapterId}`,
-    status: parsed.data.status,
-    score: parsed.data.score,
+    status: parsed.status,
+    score: parsed.score,
     updatedAt: now,
-    ...(parsed.data.status === "completed" && { completedAt: now }),
+    ...(parsed.status === "completed" && { completedAt: now }),
   };
 
-  await docClient.send(
-    new PutCommand({
-      TableName: TABLE_NAME,
-      Item: item,
-    }),
-  );
+  try {
+    await docClient.send(
+      new PutCommand({
+        TableName: TABLE_NAME,
+        Item: item,
+      }),
+    );
+  } catch {
+    throw createError({ statusCode: 500, message: "Failed to save progress" });
+  }
 
   return {
     chapterId,
