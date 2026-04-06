@@ -28,7 +28,7 @@ function render() {
 
   const data = props.chars.map((ch, i) => ({
     char: ch,
-    prob: props.probs[i],
+    prob: props.probs[i]!,
     isCorrect: i === props.correctIndex,
   }))
 

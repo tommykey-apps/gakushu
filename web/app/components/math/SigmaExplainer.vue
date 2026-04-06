@@ -48,7 +48,7 @@
             <span class="text-gray-400"> × </span>
             <span class="text-blue-600">{{ vecB[i] }}</span>
             <span class="text-gray-400"> = </span>
-            <span class="font-semibold">{{ (vecA[i] * vecB[i]).toFixed(2) }}</span>
+            <span class="font-semibold">{{ (vecA[i]! * vecB[i]!).toFixed(2) }}</span>
           </div>
           <div
             class="text-sm font-mono border-t border-gray-200 pt-1 transition-opacity"
@@ -75,7 +75,7 @@
 <script setup lang="ts">
 const vecA = [0.3, -1.2, 0.8]
 const vecB = [0.5, 0.2, 0.9]
-const total = vecA.reduce((sum, v, i) => sum + v * vecB[i], 0)
+const total = vecA.reduce((sum, v, i) => sum + v * vecB[i]!, 0)
 
 const activeStep = ref(-1)
 
