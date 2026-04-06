@@ -1,11 +1,9 @@
-import { defineEventHandler, createError } from "h3";
+import { defineEventHandler, getValidatedRouterParams } from "h3";
 import { invokeModel } from "../../../utils/bedrock";
+import { ChapterIdParamsSchema } from "../../../schemas/params";
 
 export default defineEventHandler(async (event) => {
-  const chapterId = event.context.params?.chapterId;
-  if (!chapterId) {
-    throw createError({ statusCode: 400, message: "chapterId is required" });
-  }
+  const { chapterId } = await getValidatedRouterParams(event, ChapterIdParamsSchema);
 
   const system = `あなたはGPTの仕組みを教える教育AIです。指定されたチャプターに関するクイズを生成してください。
 レスポンスは必ず以下のJSON形式で返してください:

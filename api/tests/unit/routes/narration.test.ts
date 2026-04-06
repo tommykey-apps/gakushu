@@ -20,6 +20,7 @@ vi.mock("h3", async (importOriginal) => {
   return {
     ...actual,
     setResponseHeader: vi.fn(),
+    getValidatedRouterParams: vi.fn(),
   };
 });
 
@@ -27,6 +28,7 @@ import handler from "../../../routes/api/narration/[chapterId].get";
 import { docClient } from "../../../utils/dynamo";
 import { invokeModel } from "../../../utils/bedrock";
 import { synthesizeSpeech } from "../../../utils/polly";
+import { getValidatedRouterParams } from "h3";
 
 describe("GET /api/narration/:chapterId", () => {
   beforeEach(() => {
@@ -35,12 +37,13 @@ describe("GET /api/narration/:chapterId", () => {
 
   it("returns cached audio when available", async () => {
     const audioBase64 = Buffer.from("CACHED_AUDIO").toString("base64");
+    vi.mocked(getValidatedRouterParams).mockResolvedValue({ chapterId: "1" });
     vi.mocked(docClient.send).mockResolvedValue({
       Item: { audioBase64 },
     } as any);
 
     const event = {
-      context: { params: { chapterId: "tokenization" } },
+      context: {},
     } as any;
 
     const result = await handler(event);
@@ -51,6 +54,7 @@ describe("GET /api/narration/:chapterId", () => {
 
   it("generates and caches narration when not cached", async () => {
     // First call: cache miss
+    vi.mocked(getValidatedRouterParams).mockResolvedValue({ chapterId: "1" });
     vi.mocked(docClient.send)
       .mockResolvedValueOnce({ Item: undefined } as any) // GetCommand - no cache
       .mockResolvedValueOnce({} as any); // PutCommand - save cache
@@ -60,7 +64,7 @@ describe("GET /api/narration/:chapterId", () => {
     vi.mocked(synthesizeSpeech).mockResolvedValue(audioBuffer);
 
     const event = {
-      context: { params: { chapterId: "tokenization" } },
+      context: {},
     } as any;
 
     const result = await handler(event);
@@ -71,9 +75,13 @@ describe("GET /api/narration/:chapterId", () => {
     expect(docClient.send).toHaveBeenCalledTimes(2);
   });
 
-  it("throws 400 when chapterId is missing", async () => {
+  it("throws 400 when chapterId validation fails", async () => {
+    vi.mocked(getValidatedRouterParams).mockRejectedValue(
+      Object.assign(new Error("Validation failed"), { statusCode: 400 }),
+    );
+
     const event = {
-      context: { params: {} },
+      context: {},
     } as any;
 
     await expect(handler(event)).rejects.toMatchObject({

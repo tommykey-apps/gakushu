@@ -1,14 +1,12 @@
-import { defineEventHandler, createError, setResponseHeader } from "h3";
+import { defineEventHandler, setResponseHeader, getValidatedRouterParams } from "h3";
 import { docClient, TABLE_NAME } from "../../../utils/dynamo";
 import { GetCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
 import { invokeModel } from "../../../utils/bedrock";
 import { synthesizeSpeech } from "../../../utils/polly";
+import { ChapterIdParamsSchema } from "../../../schemas/params";
 
 export default defineEventHandler(async (event) => {
-  const chapterId = event.context.params?.chapterId;
-  if (!chapterId) {
-    throw createError({ statusCode: 400, message: "chapterId is required" });
-  }
+  const { chapterId } = await getValidatedRouterParams(event, ChapterIdParamsSchema);
 
   // キャッシュを確認
   const cached = await docClient.send(

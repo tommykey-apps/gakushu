@@ -11,14 +11,15 @@ vi.mock("h3", async (importOriginal) => {
   const actual = await importOriginal<typeof import("h3")>();
   return {
     ...actual,
-    readBody: vi.fn(),
+    readValidatedBody: vi.fn(),
+    getValidatedRouterParams: vi.fn(),
   };
 });
 
 import getHandler from "../../../routes/api/progress/index.get";
 import putHandler from "../../../routes/api/progress/[chapterId].put";
 import { docClient } from "../../../utils/dynamo";
-import { readBody } from "h3";
+import { readValidatedBody, getValidatedRouterParams } from "h3";
 
 describe("GET /api/progress", () => {
   beforeEach(() => {
@@ -80,15 +81,16 @@ describe("PUT /api/progress/:chapterId", () => {
 
   it("saves progress and returns updated item", async () => {
     vi.mocked(docClient.send).mockResolvedValue({} as any);
-    vi.mocked(readBody).mockResolvedValue({ status: "completed", score: 85 });
+    vi.mocked(getValidatedRouterParams).mockResolvedValue({ chapterId: "1" });
+    vi.mocked(readValidatedBody).mockResolvedValue({ status: "completed", score: 85 });
 
     const event = {
-      context: { userId: "user-1", params: { chapterId: "tokenization" } },
+      context: { userId: "user-1" },
     } as any;
 
     const result = await putHandler(event);
     expect(result).toMatchObject({
-      chapterId: "tokenization",
+      chapterId: "1",
       status: "completed",
       score: 85,
     });
@@ -96,9 +98,13 @@ describe("PUT /api/progress/:chapterId", () => {
     expect(result.updatedAt).toBeDefined();
   });
 
-  it("throws 400 when chapterId is missing", async () => {
+  it("throws 400 when chapterId validation fails", async () => {
+    vi.mocked(getValidatedRouterParams).mockRejectedValue(
+      Object.assign(new Error("Validation failed"), { statusCode: 400 }),
+    );
+
     const event = {
-      context: { userId: "user-1", params: {} },
+      context: { userId: "user-1" },
     } as any;
 
     await expect(putHandler(event)).rejects.toMatchObject({
@@ -107,10 +113,13 @@ describe("PUT /api/progress/:chapterId", () => {
   });
 
   it("throws 400 when body validation fails", async () => {
-    vi.mocked(readBody).mockResolvedValue({ status: "invalid_status" });
+    vi.mocked(getValidatedRouterParams).mockResolvedValue({ chapterId: "1" });
+    vi.mocked(readValidatedBody).mockRejectedValue(
+      Object.assign(new Error("Validation failed"), { statusCode: 400 }),
+    );
 
     const event = {
-      context: { userId: "user-1", params: { chapterId: "tokenization" } },
+      context: { userId: "user-1" },
     } as any;
 
     await expect(putHandler(event)).rejects.toMatchObject({

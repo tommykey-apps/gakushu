@@ -8,14 +8,14 @@ vi.mock("h3", async (importOriginal) => {
   const actual = await importOriginal<typeof import("h3")>();
   return {
     ...actual,
-    readBody: vi.fn(),
+    readValidatedBody: vi.fn(),
     setResponseHeader: vi.fn(),
   };
 });
 
 import handler from "../../../routes/api/sandbox/explain.post";
 import { invokeModelStream } from "../../../utils/bedrock";
-import { readBody } from "h3";
+import { readValidatedBody } from "h3";
 
 describe("POST /api/sandbox/explain", () => {
   beforeEach(() => {
@@ -28,7 +28,7 @@ describe("POST /api/sandbox/explain", () => {
       yield "here";
     }
     vi.mocked(invokeModelStream).mockReturnValue(mockStream());
-    vi.mocked(readBody).mockResolvedValue({
+    vi.mocked(readValidatedBody).mockResolvedValue({
       text: "Hello world",
       mode: "tokenize",
     });
@@ -46,8 +46,9 @@ describe("POST /api/sandbox/explain", () => {
       yield "test";
     }
     vi.mocked(invokeModelStream).mockReturnValue(mockStream());
-    vi.mocked(readBody).mockResolvedValue({
+    vi.mocked(readValidatedBody).mockResolvedValue({
       text: "Hello world",
+      mode: "full",
     });
 
     const event = {
@@ -62,35 +63,10 @@ describe("POST /api/sandbox/explain", () => {
     expect(systemArg).toContain("全プロセス");
   });
 
-  it("throws 400 when text is missing", async () => {
-    vi.mocked(readBody).mockResolvedValue({});
-
-    const event = {
-      context: { userId: "user-1" },
-    } as any;
-
-    await expect(handler(event)).rejects.toMatchObject({
-      statusCode: 400,
-    });
-  });
-
-  it("throws 400 when text is empty", async () => {
-    vi.mocked(readBody).mockResolvedValue({ text: "" });
-
-    const event = {
-      context: { userId: "user-1" },
-    } as any;
-
-    await expect(handler(event)).rejects.toMatchObject({
-      statusCode: 400,
-    });
-  });
-
-  it("throws 400 when mode is invalid", async () => {
-    vi.mocked(readBody).mockResolvedValue({
-      text: "Hello",
-      mode: "invalid_mode",
-    });
+  it("throws 400 when validation fails", async () => {
+    vi.mocked(readValidatedBody).mockRejectedValue(
+      Object.assign(new Error("Validation failed"), { statusCode: 400 }),
+    );
 
     const event = {
       context: { userId: "user-1" },

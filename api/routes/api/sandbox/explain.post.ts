@@ -1,4 +1,4 @@
-import { defineEventHandler, readBody, createError, setResponseHeader } from "h3";
+import { defineEventHandler, readValidatedBody, setResponseHeader } from "h3";
 import { invokeModelStream } from "../../../utils/bedrock";
 import { z } from "zod";
 
@@ -8,13 +8,7 @@ const ExplainRequestSchema = z.object({
 });
 
 export default defineEventHandler(async (event) => {
-  const body = await readBody(event);
-  const parsed = ExplainRequestSchema.safeParse(body);
-  if (!parsed.success) {
-    throw createError({ statusCode: 400, message: parsed.error.message });
-  }
-
-  const { text, mode } = parsed.data;
+  const { text, mode } = await readValidatedBody(event, ExplainRequestSchema);
 
   const systemPrompts: Record<string, string> = {
     tokenize: "ユーザーが入力したテキストがどのようにトークン化されるか、ステップバイステップで解説してください。",
