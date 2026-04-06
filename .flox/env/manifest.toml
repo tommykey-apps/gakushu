@@ -11,6 +11,8 @@ terraform.pkg-path = "terraform"
 nodejs.pkg-path = "nodejs"
 awscli2.pkg-path = "awscli2"
 pnpm.pkg-path = "pnpm"
+xvfb-run.pkg-path = "xvfb-run"
+xvfb-run.systems = ["x86_64-linux", "aarch64-linux"]
 # gum.pkg-path = "gum"
 # gum.version = "^0.14.5"
 

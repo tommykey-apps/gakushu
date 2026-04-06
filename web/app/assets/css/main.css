@@ -15,3 +15,22 @@
   --color-primary-900: #171717;
   --color-primary-950: #0a0a0a;
 }
+
+/* Page transitions */
+.page-enter-active,
+.page-leave-active {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.page-enter-from {
+  opacity: 0;
+  transform: translateY(8px);
+}
+.page-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+body {
+  line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+}

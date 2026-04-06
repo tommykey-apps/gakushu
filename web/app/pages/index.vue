@@ -1,80 +1,56 @@
 <template>
   <div>
-    <!-- Hero -->
-    <section class="py-24 text-center">
-      <h1 class="text-3xl font-semibold tracking-tight text-gray-900 leading-relaxed">
-        GPTの仕組みを、ゼロから理解する
-      </h1>
-      <p class="mt-4 text-base text-gray-500 max-w-lg mx-auto leading-relaxed">
-        インタラクティブな可視化で、言語モデルの仕組みを一歩ずつ学ぶ。
-      </p>
-      <UButton
-        to="/chapters"
-        color="neutral"
-        size="lg"
-        class="mt-10"
-      >
-        始める
-      </UButton>
-    </section>
+    <UPageHero
+      title="GPTの仕組みを、ゼロから理解する"
+      description="インタラクティブな可視化で、言語モデルの仕組みを一歩ずつ学ぶ。"
+      :links="[
+        {
+          label: '始める',
+          to: '/chapters',
+          color: 'neutral',
+          variant: 'outline',
+          size: 'xl',
+        },
+      ]"
+      :ui="{
+        root: 'py-28 sm:py-36 lg:py-44',
+        title: 'text-3xl sm:text-4xl font-semibold tracking-tight text-gray-800',
+        description: 'text-base text-gray-400 max-w-lg leading-relaxed',
+        links: 'mt-10',
+      }"
+    />
 
-    <!-- Chapter cards -->
-    <section class="py-16">
-      <div class="space-y-4">
-        <NuxtLink
+    <UPageSection
+      :ui="{
+        root: 'py-16 sm:py-24',
+        container: 'max-w-3xl',
+      }"
+    >
+      <UPageList>
+        <UPageCard
           v-for="chapter in chapters"
           :key="chapter.order"
+          :title="`Chapter ${chapter.order}: ${chapter.title}`"
+          :description="chapter.description"
           :to="`/chapters/${chapter.order}`"
-          class="block border border-gray-100 rounded p-6 hover:bg-gray-50 transition-colors"
+          variant="outline"
+          spotlight
+          spotlight-color="neutral"
+          :ui="{
+            root: 'transition-all duration-300 ease-out hover:shadow-sm',
+            title: 'text-sm font-medium text-gray-800',
+            description: 'text-sm text-gray-400 leading-relaxed',
+          }"
         >
-          <div class="flex items-start gap-4">
+          <template #leading>
             <span class="text-xl">{{ chapter.icon }}</span>
-            <div>
-              <h3 class="text-sm font-medium text-gray-900">
-                Chapter {{ chapter.order }}: {{ chapter.title }}
-              </h3>
-              <p class="mt-1 text-sm text-gray-500 leading-relaxed">
-                {{ chapter.description }}
-              </p>
-            </div>
-          </div>
-        </NuxtLink>
-      </div>
-    </section>
+          </template>
+        </UPageCard>
+      </UPageList>
+    </UPageSection>
   </div>
 </template>
 
 <script setup lang="ts">
-const chapters = [
-  {
-    order: 1,
-    title: '基礎LM',
-    description: 'たった153個の数値で「ももたろう」を学習するAIを作る',
-    icon: '🎲',
-  },
-  {
-    order: 2,
-    title: 'トークナイザ',
-    description: '文字をAIが扱える「数字の列」に変換する仕組み',
-    icon: '🔤',
-  },
-  {
-    order: 3,
-    title: 'Transformer',
-    description: '文脈を理解する「注意」のメカニズム',
-    icon: '🔍',
-  },
-  {
-    order: 4,
-    title: 'RLHF',
-    description: '人間のフィードバックでAIを賢くする方法',
-    icon: '🎯',
-  },
-  {
-    order: 5,
-    title: '推論と生成',
-    description: 'テキストが一文字ずつ生まれる瞬間を見る',
-    icon: '✨',
-  },
-]
+const { chapters } = useChapters()
 </script>

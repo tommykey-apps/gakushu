@@ -5,6 +5,13 @@ export default defineNuxtConfig({
 
   modules: ['@nuxt/ui', '@nuxt/content'],
 
+  app: {
+    pageTransition: {
+      name: 'page',
+      mode: 'out-in',
+    },
+  },
+
   routeRules: {
     '/api/**': {
       proxy: 'http://localhost:3001/**',

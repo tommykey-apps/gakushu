@@ -1,61 +1,42 @@
 <template>
-  <header class="border-b border-gray-100">
-    <div class="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
-      <!-- Logo -->
-      <NuxtLink to="/" class="text-lg font-semibold tracking-tight text-gray-900">
-        学
-      </NuxtLink>
+  <UHeader title="学" to="/">
+    <UNavigationMenu
+      :items="navItems"
+      variant="link"
+      color="neutral"
+    />
 
-      <!-- Navigation -->
-      <nav class="flex items-center gap-6">
-        <NuxtLink
-          to="/"
-          class="text-sm text-gray-500 hover:text-gray-900 transition-colors"
-          active-class="text-gray-900"
-        >
-          ホーム
-        </NuxtLink>
-        <NuxtLink
-          to="/chapters"
-          class="text-sm text-gray-500 hover:text-gray-900 transition-colors"
-          active-class="text-gray-900"
-        >
-          章一覧
-        </NuxtLink>
-        <NuxtLink
-          to="/sandbox"
-          class="text-sm text-gray-500 hover:text-gray-900 transition-colors"
-          active-class="text-gray-900"
-        >
-          サンドボックス
-        </NuxtLink>
-      </nav>
-
-      <!-- Auth -->
-      <div>
-        <UButton
-          v-if="!user"
-          to="/login"
-          variant="ghost"
-          color="neutral"
-          size="sm"
-        >
-          ログイン
-        </UButton>
-        <UButton
-          v-else
-          to="/dashboard"
-          variant="ghost"
-          color="neutral"
-          size="sm"
-        >
-          ダッシュボード
-        </UButton>
-      </div>
-    </div>
-  </header>
+    <template #right>
+      <UButton
+        v-if="!user"
+        to="/login"
+        variant="ghost"
+        color="neutral"
+        size="sm"
+        class="text-gray-400 hover:text-gray-600"
+      >
+        ログイン
+      </UButton>
+      <UButton
+        v-else
+        to="/dashboard"
+        variant="ghost"
+        color="neutral"
+        size="sm"
+        class="text-gray-400 hover:text-gray-600"
+      >
+        ダッシュボード
+      </UButton>
+    </template>
+  </UHeader>
 </template>
 
 <script setup lang="ts">
 const { user } = useAuth()
+
+const navItems = [
+  { label: 'ホーム', to: '/' },
+  { label: '章一覧', to: '/chapters' },
+  { label: 'サンドボックス', to: '/sandbox' },
+]
 </script>

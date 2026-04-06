@@ -1,15 +1,19 @@
 <template>
-  <footer class="border-t border-gray-100 py-8">
-    <div class="max-w-7xl mx-auto px-6 flex items-center justify-between text-xs text-gray-400">
-      <span>&copy; {{ new Date().getFullYear() }} gakushu.now</span>
+  <UFooter>
+    <template #left>
+      <span class="text-xs text-gray-300">
+        &copy; {{ new Date().getFullYear() }} gakushu.now
+      </span>
+    </template>
+    <template #right>
       <a
         href="https://github.com/tommykey-apps/gakushu"
         target="_blank"
         rel="noopener noreferrer"
-        class="hover:text-gray-600 transition-colors"
+        class="text-xs text-gray-300 hover:text-gray-500 transition-colors duration-300"
       >
         GitHub
       </a>
-    </div>
-  </footer>
+    </template>
+  </UFooter>
 </template>
