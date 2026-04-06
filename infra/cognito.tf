@@ -46,7 +46,7 @@ resource "aws_cognito_user_pool_client" "web" {
 
   generate_secret = false
 
-  allowed_oauth_flows                  = ["implicit"]
+  allowed_oauth_flows                  = ["code"]
   allowed_oauth_flows_user_pool_client = true
   allowed_oauth_scopes                 = ["openid", "email", "profile"]
   callback_urls                        = ["https://${var.domain}/callback", "http://localhost:3000/callback"]
