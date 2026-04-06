@@ -33,7 +33,7 @@ jobs:
           cd api
           pnpm install --frozen-lockfile
           pnpm run build
-          pnpm test
+          pnpm run test:unit
 
   test-web:
     runs-on: ubuntu-latest

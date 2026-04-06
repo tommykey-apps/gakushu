@@ -84,8 +84,8 @@ describe('TinyLM', () => {
 describe('trainTinyLM', () => {
   it('300ステップ後の loss が初期より大幅に下がる', () => {
     const { snapshots } = trainTinyLM(TEXT, 300, 1.0, 10)
-    const initialLoss = snapshots[0].loss
-    const finalLoss = snapshots[snapshots.length - 1].loss
+    const initialLoss = snapshots[0]!.loss
+    const finalLoss = snapshots[snapshots.length - 1]!.loss
     expect(finalLoss).toBeLessThan(initialLoss * 0.5)
   })
 
