@@ -1,5 +1,6 @@
 import { defineEventHandler, readValidatedBody, setResponseHeader } from "h3";
 import { invokeModelStream } from "../../../utils/bedrock";
+import { wrapUserInput, ANTI_INJECTION_INSTRUCTION } from "../../../utils/sanitize";
 import { z } from "zod";
 
 const ExplainRequestSchema = z.object({
@@ -17,7 +18,8 @@ export default defineEventHandler(async (event) => {
     full: "ユーザーが入力したテキストがGPTでどのように処理されるか、トークン化→埋め込み→Attention→生成の全プロセスを解説してください。",
   };
 
-  const system = `あなたはGPTの仕組みを可視化して教える教育AIです。${systemPrompts[mode]}日本語で回答してください。`;
+  const system = `あなたはGPTの仕組みを可視化して教える教育AIです。${systemPrompts[mode]}日本語で回答してください。
+${ANTI_INJECTION_INSTRUCTION}`;
 
   // SSE streaming
   setResponseHeader(event, "Content-Type", "text/event-stream");
@@ -29,7 +31,7 @@ export default defineEventHandler(async (event) => {
       const encoder = new TextEncoder();
       try {
         for await (const chunk of invokeModelStream(system, [
-          { role: "user", content: `以下のテキストを解説してください: "${text}"` },
+          { role: "user", content: `以下のテキストを解説してください: ${wrapUserInput(text)}` },
         ])) {
           const data = `data: ${JSON.stringify({ text: chunk })}\n\n`;
           controller.enqueue(encoder.encode(data));
