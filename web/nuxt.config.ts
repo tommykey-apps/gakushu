@@ -28,5 +28,13 @@ export default defineNuxtConfig({
     },
   },
 
+  runtimeConfig: {
+    public: {
+      cognitoUserPoolId: '',
+      cognitoClientId: '',
+      cognitoRegion: 'ap-northeast-1',
+    },
+  },
+
   css: ['~/assets/css/main.css'],
 })
