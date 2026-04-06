@@ -1,5 +1,5 @@
 <template>
-  <MathMathExpandable title="e（指数関数）って何？">
+  <MathExpandable title="e（指数関数）って何？">
     <div class="space-y-6">
       <p class="text-sm text-gray-600 leading-relaxed">
         点数にはマイナスの値もある。パーセントに変換するには全部正の数にしたい。
@@ -36,7 +36,7 @@
         これを全文字の点数に適用してから合計で割ると、パーセントになる（softmax）。
       </p>
     </div>
-  </MathMathExpandable>
+  </MathExpandable>
 </template>
 
 <script setup lang="ts">

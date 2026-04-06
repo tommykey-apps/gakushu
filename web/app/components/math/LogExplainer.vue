@@ -1,5 +1,5 @@
 <template>
-  <MathMathExpandable title="log って何？">
+  <MathExpandable title="log って何？">
     <div class="space-y-6">
       <p class="text-sm text-gray-600 leading-relaxed">
         log は「確率が低いほど大きなマイナスを返す」関数。
@@ -36,7 +36,7 @@
         <div ref="graphContainer" class="w-full" />
       </ClientOnly>
     </div>
-  </MathMathExpandable>
+  </MathExpandable>
 </template>
 
 <script setup lang="ts">

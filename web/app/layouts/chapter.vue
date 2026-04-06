@@ -19,7 +19,7 @@
         <slot />
       </main>
     </div>
-    <TutorTutorChat />
+    <TutorChat />
     <LayoutAppFooter />
   </div>
 </template>

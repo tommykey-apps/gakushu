@@ -1,5 +1,5 @@
 <template>
-  <MathMathExpandable title="Σ（掛けて全部足す）って何？">
+  <MathExpandable title="Σ（掛けて全部足す）って何？">
     <div class="space-y-6">
       <p class="text-sm text-gray-600 leading-relaxed">
         変換表から取り出した数値と、点数表の数値を「1つずつ掛けて全部足す」。
@@ -69,7 +69,7 @@
         </UButton>
       </div>
     </div>
-  </MathMathExpandable>
+  </MathExpandable>
 </template>
 
 <script setup lang="ts">
