@@ -27,7 +27,7 @@ function render() {
   el.innerHTML = ''
 
   const rows = props.weights.length
-  const cols = props.weights[0].length
+  const cols = props.weights[0]!.length
 
   // Flatten to find range
   const allVals = props.weights.flat()
@@ -77,7 +77,7 @@ function render() {
 
     for (let j = 0; j < cols; j++) {
       const x = labelWidth + j * cellSize
-      const val = props.weights[i][j]
+      const val = props.weights[i]![j]!
 
       const cell = g.append('g').attr('class', 'cursor-pointer')
 
@@ -88,7 +88,7 @@ function render() {
         .attr('width', cellSize - 2)
         .attr('height', cellSize - 2)
         .attr('rx', 2)
-        .attr('fill', colorScale(val))
+        .attr('fill', colorScale(val) as string)
         .attr('stroke', '#e5e5e5')
         .attr('stroke-width', 0.5)
 

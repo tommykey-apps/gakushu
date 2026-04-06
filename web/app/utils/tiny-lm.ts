@@ -99,28 +99,28 @@ export class TinyLM {
     const N = X.length
 
     // 変換表を引く
-    const h: number[][] = X.map((xi) => [...this.embWeight[xi]])
+    const h: number[][] = X.map((xi) => [...this.embWeight[xi]!])
 
     // 点数を計算: logits = h @ linearWeight + linearBias
     const logits: number[][] = zeros(N, this.vocabSize)
     for (let i = 0; i < N; i++) {
       for (let j = 0; j < this.vocabSize; j++) {
-        let sum = this.linearBias[j]
+        let sum = this.linearBias[j]!
         for (let k = 0; k < this.embDim; k++) {
-          sum += h[i][k] * this.linearWeight[k][j]
+          sum += h[i]![k]! * this.linearWeight[k]![j]!
         }
-        logits[i][j] = sum
+        logits[i]![j] = sum
       }
     }
 
     // softmax: 点数 → パーセント
     const probs: number[][] = zeros(N, this.vocabSize)
     for (let i = 0; i < N; i++) {
-      const maxVal = Math.max(...logits[i])
-      const expVals = logits[i].map((v) => Math.exp(v - maxVal))
+      const maxVal = Math.max(...logits[i]!)
+      const expVals = logits[i]!.map((v) => Math.exp(v - maxVal))
       const sumExp = expVals.reduce((a, b) => a + b, 0)
       for (let j = 0; j < this.vocabSize; j++) {
-        probs[i][j] = expVals[j] / sumExp
+        probs[i]![j] = expVals[j]! / sumExp
       }
     }
 
@@ -132,7 +132,7 @@ export class TinyLM {
     const N = Y.length
     let totalLoss = 0
     for (let i = 0; i < N; i++) {
-      totalLoss += -Math.log(probs[i][Y[i]])
+      totalLoss += -Math.log(probs[i]![Y[i]!]!)
     }
     return totalLoss / N
   }
@@ -144,11 +144,14 @@ export class TinyLM {
     // 点数に対する修正指示: 予測確率 - 正解
     const dlogits: number[][] = probs.map((row) => [...row])
     for (let i = 0; i < N; i++) {
-      dlogits[i][Y[i]] -= 1
+      const row = dlogits[i]!
+      const yi = Y[i]!
+      row[yi] = row[yi]! - 1
     }
     for (let i = 0; i < N; i++) {
+      const row = dlogits[i]!
       for (let j = 0; j < this.vocabSize; j++) {
-        dlogits[i][j] /= N
+        row[j] = row[j]! / N
       }
     }
 
@@ -158,9 +161,9 @@ export class TinyLM {
       for (let j = 0; j < this.vocabSize; j++) {
         let sum = 0
         for (let i = 0; i < N; i++) {
-          sum += h[i][k] * dlogits[i][j]
+          sum += h[i]![k]! * dlogits[i]![j]!
         }
-        dlinearWeight[k][j] = sum
+        dlinearWeight[k]![j] = sum
       }
     }
 
@@ -168,7 +171,7 @@ export class TinyLM {
     const dlinearBias: number[] = zerosFlat(this.vocabSize)
     for (let j = 0; j < this.vocabSize; j++) {
       for (let i = 0; i < N; i++) {
-        dlinearBias[j] += dlogits[i][j]
+        dlinearBias[j]! += dlogits[i]![j]!
       }
     }
 
@@ -178,32 +181,35 @@ export class TinyLM {
       for (let k = 0; k < this.embDim; k++) {
         let sum = 0
         for (let j = 0; j < this.vocabSize; j++) {
-          sum += dlogits[i][j] * this.linearWeight[k][j]
+          sum += dlogits[i]![j]! * this.linearWeight[k]![j]!
         }
-        dh[i][k] = sum
+        dh[i]![k] = sum
       }
     }
 
     const dembWeight: number[][] = zeros(this.vocabSize, this.embDim)
     for (let i = 0; i < N; i++) {
+      const row = dembWeight[X[i]!]!
       for (let k = 0; k < this.embDim; k++) {
-        dembWeight[X[i]][k] += dh[i][k]
+        row[k] = row[k]! + dh[i]![k]!
       }
     }
 
     // 実際に表の数値を直す
     for (let i = 0; i < this.vocabSize; i++) {
+      const embRow = this.embWeight[i]!
       for (let k = 0; k < this.embDim; k++) {
-        this.embWeight[i][k] -= lr * dembWeight[i][k]
+        embRow[k] = embRow[k]! - lr * dembWeight[i]![k]!
       }
     }
     for (let k = 0; k < this.embDim; k++) {
+      const lwRow = this.linearWeight[k]!
       for (let j = 0; j < this.vocabSize; j++) {
-        this.linearWeight[k][j] -= lr * dlinearWeight[k][j]
+        lwRow[j] = lwRow[j]! - lr * dlinearWeight[k]![j]!
       }
     }
     for (let j = 0; j < this.vocabSize; j++) {
-      this.linearBias[j] -= lr * dlinearBias[j]
+      this.linearBias[j] = this.linearBias[j]! - lr * dlinearBias[j]!
     }
   }
 
@@ -216,12 +222,12 @@ export class TinyLM {
       const xIdx = vocab.toI.get(ch)!
 
       // 1文字ぶん forward
-      const h = [...this.embWeight[xIdx]]
+      const h = [...this.embWeight[xIdx]!]
       const logits = zerosFlat(this.vocabSize)
       for (let j = 0; j < this.vocabSize; j++) {
-        let sum = this.linearBias[j]
+        let sum = this.linearBias[j]!
         for (let k = 0; k < this.embDim; k++) {
-          sum += h[k] * this.linearWeight[k][j]
+          sum += h[k]! * this.linearWeight[k]![j]!
         }
         logits[j] = sum
       }
@@ -236,7 +242,7 @@ export class TinyLM {
       let cumulative = 0
       let chosen = 0
       for (let j = 0; j < this.vocabSize; j++) {
-        cumulative += probs[j]
+        cumulative += probs[j]!
         if (r < cumulative) {
           chosen = j
           break
