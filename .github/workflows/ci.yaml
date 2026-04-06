@@ -7,6 +7,8 @@ on:
       - "api/**"
       - "web/**"
       - "infra/**"
+      - "docs/**"
+      - "*.md"
   merge_group:
     branches: [main]
 
