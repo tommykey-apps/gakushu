@@ -1,4 +1,4 @@
-import { defineEventHandler, getValidatedRouterParams } from "h3";
+import { defineEventHandler, getValidatedRouterParams, createError } from "h3";
 import { invokeModel } from "../../../utils/bedrock";
 import { ChapterIdParamsSchema } from "../../../schemas/params";
 
@@ -19,13 +19,18 @@ export default defineEventHandler(async (event) => {
   ]
 }`;
 
-  const result = await invokeModel(system, [
-    { role: "user", content: `チャプター「${chapterId}」に関するクイズを2問生成してください。` },
-  ]);
+  let result: string;
+  try {
+    result = await invokeModel(system, [
+      { role: "user", content: `チャプター「${chapterId}」に関するクイズを2問生成してください。` },
+    ]);
+  } catch {
+    throw createError({ statusCode: 502, message: "Quiz generation failed" });
+  }
 
   try {
     return JSON.parse(result);
   } catch {
-    return { questions: [], raw: result };
+    return { questions: [] };
   }
 });

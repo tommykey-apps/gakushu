@@ -63,7 +63,7 @@ describe("GET /api/quiz/:chapterId", () => {
     } as any;
 
     const result = await getHandler(event);
-    expect(result).toEqual({ questions: [], raw: "not json" });
+    expect(result).toEqual({ questions: [] });
   });
 
   it("throws 400 when chapterId validation fails", async () => {

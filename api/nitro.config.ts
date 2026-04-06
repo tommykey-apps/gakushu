@@ -7,4 +7,12 @@ export default defineNitroConfig({
     port: 3001,
   },
   preset: process.env.NITRO_PRESET || "node-server",
+  hooks: {
+    error(error) {
+      console.error("[API Error]", {
+        message: error.message,
+        statusCode: (error as any).statusCode,
+      });
+    },
+  },
 });

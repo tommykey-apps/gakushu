@@ -1,4 +1,4 @@
-import { defineEventHandler, readValidatedBody, getValidatedRouterParams } from "h3";
+import { defineEventHandler, readValidatedBody, getValidatedRouterParams, createError } from "h3";
 import { docClient, TABLE_NAME } from "../../../utils/dynamo";
 import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import { invokeModel } from "../../../utils/bedrock";
@@ -18,35 +18,44 @@ export default defineEventHandler(async (event) => {
   "corrections": [{"questionId": "q1", "correct": true, "explanation": "解説"}]
 }`;
 
-  const result = await invokeModel(system, [
-    {
-      role: "user",
-      content: `チャプター「${chapterId}」のクイズ回答を評価してください: ${JSON.stringify(parsed.answers)}`,
-    },
-  ]);
+  let result: string;
+  try {
+    result = await invokeModel(system, [
+      {
+        role: "user",
+        content: `チャプター「${chapterId}」のクイズ回答を評価してください: ${JSON.stringify(parsed.answers)}`,
+      },
+    ]);
+  } catch {
+    throw createError({ statusCode: 502, message: "Quiz evaluation failed" });
+  }
 
   let evaluation;
   try {
     evaluation = JSON.parse(result);
   } catch {
-    evaluation = { score: 0, feedback: result, corrections: [] };
+    evaluation = { score: 0, feedback: "評価の解析に失敗しました", corrections: [] };
   }
 
   // クイズ結果を保存
   const now = new Date().toISOString();
-  await docClient.send(
-    new PutCommand({
-      TableName: TABLE_NAME,
-      Item: {
-        pk: `USER#${userId}`,
-        sk: `QUIZ#${chapterId}#${now}`,
-        score: evaluation.score,
-        answers: parsed.answers,
-        feedback: evaluation.feedback,
-        createdAt: now,
-      },
-    }),
-  );
+  try {
+    await docClient.send(
+      new PutCommand({
+        TableName: TABLE_NAME,
+        Item: {
+          pk: `USER#${userId}`,
+          sk: `QUIZ#${chapterId}#${now}`,
+          score: evaluation.score,
+          answers: parsed.answers,
+          feedback: evaluation.feedback,
+          createdAt: now,
+        },
+      }),
+    );
+  } catch {
+    throw createError({ statusCode: 500, message: "Failed to save quiz result" });
+  }
 
   return evaluation;
 });
