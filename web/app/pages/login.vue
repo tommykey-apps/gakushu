@@ -5,6 +5,8 @@
       アカウントにログインして学習を続けましょう
     </p>
 
+    <p v-if="error" class="mt-4 text-sm text-red-600 text-center">{{ error }}</p>
+
     <UForm :schema="loginSchema" :state="state" class="mt-10 space-y-4" @submit="handleLogin">
       <UFormField label="メールアドレス" name="email">
         <UInput
@@ -30,6 +32,7 @@
         size="lg"
         block
         class="mt-6"
+        :loading="loading"
       >
         ログイン
       </UButton>
@@ -57,10 +60,24 @@ const state = reactive({
   password: '',
 })
 
+const loading = ref(false)
+const error = ref<string | null>(null)
 const { login } = useAuth()
 
 async function handleLogin() {
-  await login(state.email, state.password)
-  navigateTo('/dashboard')
+  loading.value = true
+  error.value = null
+  try {
+    await login(state.email, state.password)
+    navigateTo('/dashboard')
+  } catch (e: any) {
+    if (e.name === 'UserNotConfirmedException') {
+      navigateTo({ path: '/signup', query: { email: state.email, verify: '1' } })
+      return
+    }
+    error.value = e.message || 'ログインに失敗しました'
+  } finally {
+    loading.value = false
+  }
 }
 </script>

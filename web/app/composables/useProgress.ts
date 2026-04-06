@@ -6,7 +6,7 @@ export function useProgress() {
     if (!user.value) return
 
     try {
-      const data = await $fetch<Record<number, number>>('/api/progress')
+      const data = await $api<Record<number, number>>('/api/progress')
       progress.value = data
     }
     catch {

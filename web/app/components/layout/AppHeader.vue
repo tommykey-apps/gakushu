@@ -17,22 +17,36 @@
       >
         ログイン
       </UButton>
-      <UButton
-        v-else
-        to="/dashboard"
-        variant="ghost"
-        color="neutral"
-        size="sm"
-        class="text-gray-400 hover:text-gray-600"
-      >
-        ダッシュボード
-      </UButton>
+      <template v-else>
+        <UButton
+          to="/dashboard"
+          variant="ghost"
+          color="neutral"
+          size="sm"
+          class="text-gray-400 hover:text-gray-600"
+        >
+          ダッシュボード
+        </UButton>
+        <UButton
+          variant="ghost"
+          color="neutral"
+          size="sm"
+          class="text-gray-400 hover:text-gray-600"
+          @click="handleLogout"
+        >
+          ログアウト
+        </UButton>
+      </template>
     </template>
   </UHeader>
 </template>
 
 <script setup lang="ts">
-const { user } = useAuth()
+const { user, logout } = useAuth()
+
+async function handleLogout() {
+  await logout()
+}
 
 const navItems = [
   { label: 'ホーム', to: '/' },
