@@ -5,19 +5,19 @@
       アカウントにログインして学習を続けましょう
     </p>
 
-    <form class="mt-10 space-y-4" @submit.prevent="handleLogin">
-      <UFormField label="メールアドレス">
+    <UForm :schema="loginSchema" :state="state" class="mt-10 space-y-4" @submit="handleLogin">
+      <UFormField label="メールアドレス" name="email">
         <UInput
-          v-model="email"
+          v-model="state.email"
           type="email"
           placeholder="you@example.com"
           size="lg"
         />
       </UFormField>
 
-      <UFormField label="パスワード">
+      <UFormField label="パスワード" name="password">
         <UInput
-          v-model="password"
+          v-model="state.password"
           type="password"
           placeholder="••••••••"
           size="lg"
@@ -33,24 +33,34 @@
       >
         ログイン
       </UButton>
-    </form>
+    </UForm>
 
     <p class="mt-6 text-center text-sm text-gray-500">
       アカウントをお持ちでない方は
-      <NuxtLink to="/login" class="text-gray-900 underline underline-offset-4">サインアップ</NuxtLink>
+      <NuxtLink to="/signup" class="text-gray-900 underline underline-offset-4">サインアップ</NuxtLink>
     </p>
   </div>
 </template>
 
 <script setup lang="ts">
+import { z } from 'zod'
+
 definePageMeta({ layout: 'default' })
 
-const email = ref('')
-const password = ref('')
+const loginSchema = z.object({
+  email: z.string().email('有効なメールアドレスを入力してください'),
+  password: z.string().min(8, 'パスワードは8文字以上です'),
+})
+
+const state = reactive({
+  email: '',
+  password: '',
+})
+
 const { login } = useAuth()
 
 async function handleLogin() {
-  await login(email.value, password.value)
+  await login(state.email, state.password)
   navigateTo('/dashboard')
 }
 </script>

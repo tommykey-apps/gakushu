@@ -1,6 +1,6 @@
 <template>
   <ClientOnly>
-    <div ref="container" class="w-full overflow-x-auto" />
+    <div ref="container" class="w-full overflow-x-auto" role="img" aria-label="埋め込みベクトルのヒートマップ" />
     <template #fallback>
       <div class="border border-gray-200 rounded p-8 text-center text-sm text-gray-400">
         読み込み中...
