@@ -22,10 +22,8 @@
         spotlight-color="neutral"
         class="fade-in-up card-hover"
         :style="{ transitionDelay: `${i * 0.08}s` }"
+          :icon="chapter.icon"
       >
-        <template #leading>
-          <span class="text-xl">{{ chapter.icon }}</span>
-        </template>
         <template v-if="user" #footer>
           <div class="w-full">
             <div class="h-1 bg-gray-100 rounded-full overflow-hidden">

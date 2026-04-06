@@ -5,10 +5,21 @@ export default defineNuxtConfig({
 
   modules: ['@nuxt/ui', '@nuxt/content'],
 
+  colorMode: {
+    preference: 'light',
+    fallback: 'light',
+  },
+
   app: {
     pageTransition: {
       name: 'page',
       mode: 'out-in',
+    },
+  },
+
+  nitro: {
+    prerender: {
+      routes: ['/chapters/1', '/chapters/2', '/chapters/3', '/chapters/4', '/chapters/5'],
     },
   },
 

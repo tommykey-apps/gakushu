@@ -38,15 +38,13 @@
           spotlight-color="neutral"
           class="fade-in-up card-hover"
           :style="{ transitionDelay: `${i * 0.08}s` }"
+          :icon="chapter.icon"
           :ui="{
             title: 'text-sm font-medium text-gray-800',
             description: 'text-sm text-gray-400 leading-relaxed',
           }"
-        >
-          <template #leading>
-            <span class="text-xl">{{ chapter.icon }}</span>
-          </template>
-        </UPageCard>
+        />
+
       </UPageList>
     </UPageSection>
   </div>
