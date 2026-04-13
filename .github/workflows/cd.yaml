@@ -97,10 +97,18 @@ jobs:
           cache: pnpm
           cache-dependency-path: web/pnpm-lock.yaml
 
+      - name: Get deployment parameters from SSM
+        id: params
+        run: |
+          echo "cloudfront_id=$(aws ssm get-parameter --name /gakushu/cloudfront-distribution-id --query 'Parameter.Value' --output text)" >> $GITHUB_OUTPUT
+          echo "frontend_bucket=$(aws ssm get-parameter --name /gakushu/frontend-bucket --query 'Parameter.Value' --output text)" >> $GITHUB_OUTPUT
+          echo "cognito_user_pool_id=$(aws ssm get-parameter --name /gakushu/cognito-user-pool-id --query 'Parameter.Value' --output text)" >> $GITHUB_OUTPUT
+          echo "cognito_client_id=$(aws ssm get-parameter --name /gakushu/cognito-client-id --query 'Parameter.Value' --output text)" >> $GITHUB_OUTPUT
+
       - name: Build Nuxt
         env:
-          NUXT_PUBLIC_COGNITO_USER_POOL_ID: ${{ secrets.COGNITO_USER_POOL_ID }}
-          NUXT_PUBLIC_COGNITO_CLIENT_ID: ${{ secrets.COGNITO_CLIENT_ID }}
+          NUXT_PUBLIC_COGNITO_USER_POOL_ID: ${{ steps.params.outputs.cognito_user_pool_id }}
+          NUXT_PUBLIC_COGNITO_CLIENT_ID: ${{ steps.params.outputs.cognito_client_id }}
           NUXT_PUBLIC_API_URL: ${{ secrets.API_URL }}
         run: |
           cd web
@@ -108,10 +116,10 @@ jobs:
           pnpm run generate
 
       - name: Deploy to S3
-        run: aws s3 sync web/.output/public/ s3://${{ secrets.FRONTEND_BUCKET }} --delete
+        run: aws s3 sync web/.output/public/ s3://${{ steps.params.outputs.frontend_bucket }} --delete
 
       - name: Invalidate CloudFront cache
         run: |
           aws cloudfront create-invalidation \
-            --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
+            --distribution-id ${{ steps.params.outputs.cloudfront_id }} \
             --paths "/*"
