@@ -29,3 +29,6 @@ terraform.tfvars
 
 # Playwright
 .playwright-mcp/
+
+# Local tool binaries (tbls, etc.)
+bin/
