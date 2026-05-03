@@ -3,11 +3,12 @@ import {
   OpenApiGeneratorV31,
 } from "@asteasolutions/zod-to-openapi";
 import { z } from "zod";
-import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
 import { writeFileSync, mkdirSync } from "fs";
-import { resolve } from "path";
+import { dirname, resolve } from "path";
+import { fileURLToPath } from "url";
 
-extendZodWithOpenApi(z);
+// ESM では __dirname が未定義。import.meta.url から導出する。
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 import {
   ChapterProgressSchema,
@@ -24,15 +25,10 @@ import { NarrationResponseSchema } from "./schemas/narration";
 
 const registry = new OpenAPIRegistry();
 
-// Register schemas
-registry.register("ChapterProgress", ChapterProgressSchema);
-registry.register("ProgressListResponse", ProgressListResponseSchema);
-registry.register("UpdateProgressRequest", UpdateProgressRequestSchema);
-registry.register("QuizResponse", QuizResponseSchema);
-registry.register("QuizSubmitRequest", QuizSubmitRequestSchema);
-registry.register("QuizEvaluation", QuizEvaluationSchema);
-registry.register("TutorAskRequest", TutorAskRequestSchema);
-registry.register("NarrationResponse", NarrationResponseSchema);
+// Schema 名は各 schemas/*.ts で `.meta({ id: "..." })` として宣言済 (zod v4 + zod-to-openapi v8 の
+// 公式推奨パターン)。registry.register("Name", schema) は不要 — registry が .meta.id を見て
+// components/schemas に自動登録する。
+// extendZodWithOpenApi も呼ばない (.meta は zod v4 ネイティブメソッドのため拡張不要)。
 
 // Auth
 registry.registerPath({
