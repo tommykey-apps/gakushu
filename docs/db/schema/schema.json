@@ -1,0 +1,47 @@
+{
+  "name": "Amazon DynamoDB (ap-northeast-1)",
+  "tables": [
+    {
+      "name": "gakushu",
+      "type": "BASIC TABLE",
+      "comment": "Single-table design. 4 logical entities (User Profile / Progress / Quiz / Narration cache)\nare stored under different PK/SK prefixes. TTL on `ttl` attribute (Unix timestamp) for\ncache expiry. See ../entities.md and ../access-patterns.md for full attribute definitions\n(tbls cannot infer non-key attributes from DynamoDB).\n",
+      "columns": [
+        {
+          "name": "pk",
+          "type": "S",
+          "nullable": false,
+          "comment": "Partition key. Prefix determines the entity scope:\n  USER#{cognito_sub}        User-scoped data (Profile / Progress / Quiz)\n  NARR#{chapterId}          Narration cache (shared across users)\n"
+        },
+        {
+          "name": "sk",
+          "type": "S",
+          "nullable": false,
+          "comment": "Sort key. Prefix determines the entity type:\n  PROFILE                                User profile (single per user)\n  PROG#{chapterId}                       Learning progress per chapter\n  QUIZ#{chapterId}#{ISO8601}             Quiz result history\n  LANG#ja                                Narration cache language variant\n"
+        }
+      ],
+      "constraints": [
+        {
+          "name": "Primary Key",
+          "type": "Partition key and sort key",
+          "def": "[{ AttributeName: \"pk\", KeyType: \"HASH\" } { AttributeName: \"sk\", KeyType: \"RANGE\" }]",
+          "table": null,
+          "columns": [
+            "pk",
+            "sk"
+          ]
+        }
+      ]
+    }
+  ],
+  "driver": {
+    "name": "dynamodb",
+    "meta": {
+      "dict": {
+        "Column": "Attribute",
+        "Columns": "Attributes",
+        "Constraints": "Primary Key",
+        "Indexes": "Secondary Indexes"
+      }
+    }
+  }
+}

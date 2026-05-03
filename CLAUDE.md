@@ -48,6 +48,11 @@ cd infra && terraform apply
 cd infra && terraform destroy
 ```
 
+## DB スキーマドキュメント
+
+`docs/db/` に DynamoDB スキーマドキュメント。`make db-docs` で再生成。
+詳細: [docs/db/entities.md](docs/db/entities.md), [docs/db/access-patterns.md](docs/db/access-patterns.md)
+
 ## ドメイン
 
 gakushu.now (独自ドメイン。他プロジェクトの *.tommykeyapp.com とは別)
